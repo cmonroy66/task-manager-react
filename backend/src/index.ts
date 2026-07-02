@@ -1,15 +1,23 @@
 const express = require("express");
+// PRISMA CHANGE: Import Prisma Client
+const { PrismaClient } = require("@prisma/client");
+
 const app = express();
-app.use(express.json());
 const PORT = 3000;
+// PRISMA CHANGE: Create the connection to PostgreSQL through Prisma
+const prisma = new PrismaClient();
+
+app.use(express.json());
 
 type Task = {
     id: number;    
     text: string;    
     completed: boolean; 
 };
+//This array is still here because POST, PUT, and DELETE requests are not yet connected to Prisma yet.
+//PRISMA CHANGE: /tasks will no longer use this array
 
-const tasks: Task[] = [    
+let tasks: Task[] = [    
     { id: 1, text: "Estudiar Node.js", completed: false },    
     { id: 2, text: "Crear servidor Express", completed: true },    
     { id: 3, text: "Probar rutas del backend", completed: false }
@@ -19,12 +27,13 @@ app.get("/", (req: any, res: any) => {
     res.send("Backend is working!");
 });
 
-app.get("/tasks", (req: any, res: any) => {
-    res.json(tasks); 
+app.get("/tasks", async (req: any, res: any) => {
+    const tasksFromDatabase = await prisma.task.findMany();
+    res.json(tasksFromDatabase); 
 });
 
 app.post("/tasks", (req: any, res: any) => {    
-    const { text } = req.body;    
+    const { text } = req.body || {};    
     if (!text || text.trim() === "") {
          return res.status(400).json({            
             message: "Task text is required"        
@@ -48,12 +57,7 @@ app.put("/tasks/:id", (req: any, res: any) => {
         message: "Task not found"        
         });    
     }    
-    if (text !== undefined) {        
-    task.text = text;    
-    }    
-    if (completed !== undefined) {        
-    task.completed = completed;    
-    }    
+    task.completed = !task.completed;
     res.json(task); 
 });
 
