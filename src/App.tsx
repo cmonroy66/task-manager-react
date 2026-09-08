@@ -12,6 +12,7 @@ type Task = {
 };
 
 function App() {
+    let aux = 0;
     const [tasks, setTasks] = useState<Task[]>([]);
 
     useEffect(() => { 
