@@ -2,7 +2,7 @@
   
 [Descripción breve: qué hace la app en 1-2 líneas] 
   
-<!-- BADGE_CI --> 
+[![CI](https://github.com/cmonroy66/task-manager-react/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cmonroy66/task-manager-react/actions/workflows/ci.yml)
   
 ## 🚀 Instalación local 
   
