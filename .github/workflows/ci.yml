@@ -31,6 +31,22 @@ jobs:
   pruebas:
     name: Pruebas unitarias y cobertura
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: task_manager
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d task_manager"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/task_manager?schema=public
     defaults:
       run:
         working-directory: ./
@@ -41,6 +57,14 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      - name: Instalar dependencias del backend
+        run: npm ci
+        working-directory: ./backend
+      - name: Aplicar migraciones y generar cliente Prisma
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+        working-directory: ./backend
       - run: npx vitest run --coverage
 
   e2e:
