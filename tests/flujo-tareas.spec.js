@@ -7,7 +7,7 @@ test('un usuario puede crear una tarea y verla en la lista', async ({ page }) =>
   await page.goto('/')
  
   // 2. Crear una tarea
-  await page.getByPlaceholder('Escribe una nueva inexistente').fill(taskText)
+  await page.getByPlaceholder('Escribe una nueva tarea').fill(taskText)
   await page.getByRole('button', { name: 'Agregar' }).click()
  
   // 3. Verla en la lista
