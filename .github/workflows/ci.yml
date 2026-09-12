@@ -27,3 +27,71 @@ jobs:
 
       - name: Construir proyecto
         run: npm run build
+
+  pruebas:
+    name: Pruebas unitarias y cobertura
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx vitest run --coverage
+
+  e2e:
+    name: Pruebas E2E
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: task_manager
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d task_manager"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/task_manager?schema=public
+    defaults:
+      run:
+        working-directory: ./
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Instalar dependencias del backend
+        run: npm ci
+        working-directory: ./backend
+      - name: Aplicar migraciones y generar cliente Prisma
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+        working-directory: ./backend
+      - name: Iniciar backend
+        run: npm run dev > /tmp/task-manager-backend.log 2>&1 &
+        working-directory: ./backend
+      - name: Esperar al backend
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:3000/ > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/task-manager-backend.log
+          exit 1
+      - run: npx playwright install --with-deps
+      - run: npx playwright test
