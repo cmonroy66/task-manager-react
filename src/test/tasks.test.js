@@ -1,7 +1,6 @@
 import request from 'supertest'
 import { describe, it, expect } from 'vitest'
-
-const app = require('../../backend/src/index.ts')
+import app from '../../backend/src/index.ts'
 
 describe('API de tareas', () => {
   it('crea una tarea nueva con texto válido', async () => {
