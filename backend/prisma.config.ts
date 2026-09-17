@@ -8,6 +8,7 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  seed: "node prisma/seed.js",
   datasource: {
     url: process.env["DATABASE_URL"],
   },

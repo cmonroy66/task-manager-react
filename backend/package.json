@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev src/index.ts"
+    "dev": "ts-node-dev src/index.ts",
+    "start": "node src/index.ts",
+    "seed": "node prisma/seed.js"
   },
   "keywords": [],
   "author": "",
