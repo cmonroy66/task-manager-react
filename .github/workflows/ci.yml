@@ -28,8 +28,6 @@ jobs:
       - name: Construir proyecto
         run: npm run build
 
-      - run: npx prisma migrate deploy
-
   pruebas:
     name: Pruebas unitarias y cobertura
     runs-on: ubuntu-latest
@@ -48,26 +46,30 @@ jobs:
           --health-timeout=5s
           --health-retries=5
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    defaults:
-      run:
-        working-directory: ./
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/task_manager?schema=public
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+
+      - name: Instalar dependencias del frontend
+        run: npm ci
+
       - name: Instalar dependencias del backend
         run: npm ci
         working-directory: ./backend
+
       - name: Aplicar migraciones y generar cliente Prisma
         run: |
           npx prisma migrate deploy
           npx prisma generate
         working-directory: ./backend
-      - run: npx vitest run --coverage
+
+      - name: Ejecutar pruebas unitarias con cobertura
+        run: npx vitest run --coverage
 
   e2e:
     name: Pruebas E2E
@@ -88,27 +90,31 @@ jobs:
           --health-retries=5
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/task_manager?schema=public
-    defaults:
-      run:
-        working-directory: ./
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+
+      - name: Instalar dependencias del frontend
+        run: npm ci
+
       - name: Instalar dependencias del backend
         run: npm ci
         working-directory: ./backend
+
       - name: Aplicar migraciones y generar cliente Prisma
         run: |
           npx prisma migrate deploy
           npx prisma generate
         working-directory: ./backend
+
       - name: Iniciar backend
         run: npm run dev > /tmp/task-manager-backend.log 2>&1 &
         working-directory: ./backend
+
       - name: Esperar al backend
         run: |
           for attempt in {1..30}; do
@@ -119,9 +125,13 @@ jobs:
           done
           cat /tmp/task-manager-backend.log
           exit 1
-      - run: npx playwright install --with-deps
-      - run: npx playwright test
-  
+
+      - name: Instalar navegadores Playwright
+        run: npx playwright install --with-deps
+
+      - name: Ejecutar pruebas E2E
+        run: npx playwright test
+
   migraciones:
     name: Migraciones y Seeds
     runs-on: ubuntu-latest
@@ -139,10 +149,8 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/task_manager?schema=public
-
     steps:
       - uses: actions/checkout@v4
 
