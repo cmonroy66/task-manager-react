@@ -35,9 +35,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: task_manager
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         ports:
           - 5432:5432
         options: >-
@@ -46,7 +46,7 @@ jobs:
           --health-timeout=5s
           --health-retries=5
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/task_manager?schema=public
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     defaults:
       run:
         working-directory: ./
